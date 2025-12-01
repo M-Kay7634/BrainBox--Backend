@@ -4,6 +4,9 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+
+  avatar: { type: String, default: null },  // URL or filename
+
   createdAt: { type: Date, default: Date.now }
 });
 

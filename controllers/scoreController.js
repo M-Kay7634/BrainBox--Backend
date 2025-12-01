@@ -1,25 +1,30 @@
 const Score = require('../models/Score');
+const Achievement = require('../models/Achievement');
 
+// ADD SCORE
 exports.addScore = async (req, res) => {
   try {
     const userId = req.user ? req.user.id : null;
-    const { game, score, timeTaken } = req.body;
+
+    const { game, score, timeTaken, moves, level, category } = req.body;
 
     const newScore = new Score({
       userId,
-      playerName: userId ? undefined : 'Guest',
+      playerName: userId ? undefined : "Guest",
       game,
       score,
-      timeTaken
+      timeTaken,
+      moves,
+      level,
+      category
     });
 
     await newScore.save();
-    
-    const Achievement = require('../models/Achievement');
 
+    // ACHIEVEMENTS (Only for logged-in users)
     if (userId) {
       try {
-        // 1) FIRST SCORE
+        // FIRST SCORE
         const first = await Achievement.findOne({ userId, key: "first_score" });
         if (!first) {
           await Achievement.create({
@@ -30,7 +35,7 @@ exports.addScore = async (req, res) => {
           });
         }
 
-        // 2) HIGH SCORE 100+
+        // HIGH SCORE 100+
         if (score >= 100) {
           const hs = await Achievement.findOne({ userId, key: "high_100" });
           if (!hs) {
@@ -49,6 +54,7 @@ exports.addScore = async (req, res) => {
     }
 
     res.json(newScore);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
@@ -56,6 +62,7 @@ exports.addScore = async (req, res) => {
 };
 
 
+// TOP SCORES
 exports.getTopScores = async (req, res) => {
   try {
     const { game } = req.query;
@@ -68,6 +75,8 @@ exports.getTopScores = async (req, res) => {
   }
 };
 
+
+// RECENT SCORES
 exports.getRecent = async (req, res) => {
   try {
     const recent = await Score.find().sort({ date: -1 }).limit(20);
@@ -78,32 +87,39 @@ exports.getRecent = async (req, res) => {
   }
 };
 
+
+// USER SCORES (Full History)
 exports.getUserScores = async (req, res) => {
   try {
     const userId = req.user.id;
-    const scores = await Score.find({ userId }).sort({ date: 1 });
+    const scores = await Score.find({ userId }).sort({ date: -1 });
     res.json(scores);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
 };
 
+
 // DAILY LEADERBOARD
 exports.getDailyTop = async (req, res) => {
   try {
     const start = new Date();
-    start.setHours(0,0,0,0);
+    start.setHours(0, 0, 0, 0);
 
     const end = new Date();
-    end.setHours(23,59,59,999);
+    end.setHours(23, 59, 59, 999);
 
     const { game } = req.query;
-    const filter = { date: { $gte: start, $lte: end } };
+
+    const filter = {
+      date: { $gte: start, $lte: end }
+    };
 
     if (game) filter.game = game;
 
     const top = await Score.find(filter).sort({ score: -1 }).limit(10);
     res.json(top);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server error" });

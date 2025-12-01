@@ -10,6 +10,7 @@ const achievementRoutes = require('./routes/achievementRoutes');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api/profile", require("./routes/profileRoutes"));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/scores', scoreRoutes);

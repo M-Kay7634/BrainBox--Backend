@@ -2,10 +2,20 @@ const mongoose = require('mongoose');
 
 const ScoreSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+
   playerName: { type: String, default: 'Guest' },
+
   game: { type: String, required: true },
+
   score: { type: Number, required: true },
+
+  // NEW FIELDS
+  moves: { type: Number, default: 0 },
+  level: { type: String, default: "basic" },
+  category: { type: String, default: "general" },
+
   timeTaken: { type: Number, default: 0 },
+
   date: { type: Date, default: Date.now }
 });
 
