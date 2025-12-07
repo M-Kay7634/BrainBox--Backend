@@ -10,10 +10,14 @@ const achievementRoutes = require('./routes/achievementRoutes');
 const profileRoutes = require("./routes/profileRoutes");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: ["https://your-frontend.vercel.app","http://localhost:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  }));
 app.use(express.json());
 app.use("/api/profile", profileRoutes);
-app.use("/api/profile", require("./routes/profileRoutes"));
+// app.use("/api/profile", require("./routes/profileRoutes"));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/scores', scoreRoutes);
