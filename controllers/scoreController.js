@@ -1,16 +1,26 @@
 const Score = require('../models/Score');
 const Achievement = require('../models/Achievement');
+const User = require('../models/User');
 
 // ADD SCORE
 exports.addScore = async (req, res) => {
   try {
-    const userId = req.user ? req.user.id : null;
 
+    const userId = req.user ? (req.user.id || req.user._id) : null;
+    console.log("UserID: ",userId);
     const { game, score, timeTaken, moves, level, category } = req.body;
+
+    let playerName = "Guest";
+
+    // ⭐ Get actual username if logged in
+    if (userId) {
+      const user = await User.findById(userId).select("name email");
+      playerName = user?.name || user?.email || "User";
+    }
 
     const newScore = new Score({
       userId,
-      playerName: userId ? undefined : "Guest",
+      playerName,
       game,
       score,
       timeTaken,
@@ -21,10 +31,10 @@ exports.addScore = async (req, res) => {
 
     await newScore.save();
 
-    // ACHIEVEMENTS (Only for logged-in users)
+    // ⭐ Achievements only if logged in
     if (userId) {
       try {
-        // FIRST SCORE
+        // First game achievement
         const first = await Achievement.findOne({ userId, key: "first_score" });
         if (!first) {
           await Achievement.create({
@@ -35,7 +45,7 @@ exports.addScore = async (req, res) => {
           });
         }
 
-        // HIGH SCORE 100+
+        // High score 100+
         if (score >= 100) {
           const hs = await Achievement.findOne({ userId, key: "high_100" });
           if (!hs) {
@@ -53,7 +63,7 @@ exports.addScore = async (req, res) => {
       }
     }
 
-    res.json(newScore);
+    return res.json(newScore);
 
   } catch (err) {
     console.error(err);
